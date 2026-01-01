@@ -34,15 +34,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     
     _LOGGER.info("Neore data manager stored, loading sensor platform")
 
-    # Load sensor platform asynchronously
+    # Load sensor platform
     # Import here to avoid circular imports
     from homeassistant.helpers import discovery
     
-    # Schedule the platform to be loaded
-    hass.async_create_task(
-        discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
-    )
+    # Load the platform - await it to ensure proper error handling
+    try:
+        await discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
+        _LOGGER.info("Neore sensor platform loaded successfully")
+    except Exception as e:
+        _LOGGER.error("Failed to load Neore sensor platform: %s", e, exc_info=True)
+        # Don't fail setup if sensor platform fails
     
-    _LOGGER.info("Neore sensor platform loading task created")
-
     return True

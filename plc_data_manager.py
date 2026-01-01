@@ -23,13 +23,13 @@ class NeoreDataManager:
 
     def __init__(self, plc_url, username, password):
         # Only initialize once - use instance variable
-        # Check if already initialized (handles case where _initialized might not exist yet)
-        if hasattr(self, '_initialized') and self._initialized:
+        # Check if already initialized using getattr with default
+        if getattr(self, '_initialized', False):
             return
             
         with self._lock:
             # Double-check after acquiring lock
-            if hasattr(self, '_initialized') and self._initialized:
+            if getattr(self, '_initialized', False):
                 return
                 
             self._plc_url = plc_url
