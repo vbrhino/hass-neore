@@ -17,9 +17,11 @@ Home Assistant custom integration for Neore heat pumps with an animated flow vis
 - 🌡️ **Temperature-Based Colors** - Pipes change color based on water temperature
 - 📍 **Temperature Indicators** - Real-time temperatures at critical points
 - 🔥 **State-Based Coloring** - Heat pump changes color based on operating mode
+- 🏠 **Complete Circuit Visualization** - Shows heat pump → heating load → return (with or without buffer tank)
 - 🛢️ **Buffer Tank Support** - Optional buffer tank visualization with temperature gradients
 - 📊 **Real-Time Metrics** - Power, thermal output, COP, and flow rate display
 - ⚙️ **Highly Configurable** - Customize colors, animation speeds, and display options
+- 📐 **Two Layout Modes** - Simple direct circuit or advanced with buffer tank
 
 ## Installation
 
@@ -102,6 +104,22 @@ resources:
 ```
 
 ## Flow Card Configuration
+
+### Understanding the Visualization Modes
+
+The card automatically adapts to show the appropriate layout:
+
+**Simple Mode (No Buffer Tank)**
+- Shows: Heat Pump → Heating Load (Radiators/Floor Heating) → Return to Heat Pump
+- Perfect for direct heating systems without buffer tank
+- Complete circuit visualization with inlet/outlet temperatures
+- Animated flow showing water circulation
+
+**Advanced Mode (With Buffer Tank)**
+- Shows: Heat Pump → Buffer Tank → Heating Load → Return
+- For systems with intermediate buffer storage
+- Additional temperature monitoring points
+- Requires `buffer_tank` configuration section
 
 ### Basic Configuration (Belgian Setup)
 

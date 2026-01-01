@@ -1,6 +1,43 @@
 # Visual Layout of Heat Pump Flow Card
 
-## Card Structure
+## Two Visualization Modes
+
+The card automatically shows the appropriate layout based on your configuration.
+
+### Simple Mode (No Buffer Tank)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Neore Warmtepomp                                    │  ← Title
+├──────────────────────────────────────────────────────┤
+│                                                       │
+│                     ┌──────────────┐                 │
+│                     │   HEATING    │                 │
+│                  ↗  │     LOAD     │  ↘              │
+│                 /   │  (Radiators/ │   \             │
+│                /    │Floor Heating)│    \            │
+│               /     └──────────────┘     \           │
+│              /                            \          │
+│     [45.2°C]                               [38.5°C]  │
+│            /                                  \      │
+│    ┌───────┐                                   \     │
+│    │       │  → → → → → → → → → → → → → → → →  \   │
+│    │ NEORE │                                      │  │
+│    │   ⊕   │  ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←   │
+│    └───────┘                                     /   │
+│   Heat Pump                                     /    │
+│                                                       │
+├──────────────────────────────────────────────────────┤
+│  Metrics: Power: 3.2 kW | COP: 4.00 | Flow: 1.5 m³/h│
+└──────────────────────────────────────────────────────┘
+```
+
+**Use this when:**
+- You don't have buffer tank sensors
+- Direct heating system (heat pump → radiators/floor heating)
+- Simple installation without intermediate storage
+
+### Advanced Mode (With Buffer Tank)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -10,7 +47,7 @@
 │    ┌───────┐                                            │
 │    │       │    → → → →    ┌─────────┐   → → →         │
 │    │ NEORE │  [45.2°C]     │ BUFFER  │                 │
-│    │   ⊕   │               │  TANK   │   [HVAC LOAD]   │
+│    │   ⊕   │               │  TANK   │   [HEATING LOAD]│
 │    │       │    ← ← ← ←    │         │   ← ← ←         │
 │    └───────┘    [38.5°C]   └─────────┘                 │
 │   Heat Pump                                             │
@@ -21,12 +58,23 @@
 │  │ Power Input │ Thermal Out │    COP      │           │
 │  │   3.2 kW    │   12.8 kW   │    4.00     │           │
 │  └─────────────┴─────────────┴─────────────┘           │
-│  ┌─────────────┬─────────────┬─────────────┐           │
-│  │  Flow Rate  │   Energy    │    Cost     │           │
-│  │  1.5 m³/h   │  45.2 kWh   │  € 12.34    │           │
-│  └─────────────┴─────────────┴─────────────┘           │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Use this when:**
+- You have buffer tank temperature sensors
+- System includes intermediate buffer storage
+- Want to monitor buffer tank performance
+
+## What is "Heating Load"?
+
+The **"Heating Load"** box represents your home's heating system:
+- **Floor Heating** (Vloerverwarming) - Underfloor heating circuits
+- **Radiators** (Radiatoren) - Wall-mounted radiators
+- **Fan Coils** - Air handling units
+- Any combination of the above
+
+This is where the heat pump's hot water delivers warmth to your home.
 
 ## Color Coding
 
@@ -44,8 +92,13 @@
 
 ### Animation
 ```
-Flow Direction (when active):
-  Heat Pump → Buffer Tank → HVAC Load
+Simple Mode Flow Direction (when active):
+  Heat Pump → Heating Load (Radiators/Floor Heating)
+       ↓             ↑
+       └─────────────┘
+       
+With Buffer Tank Flow Direction:
+  Heat Pump → Buffer Tank → Heating Load
        ↓                         ↑
        └─────────────────────────┘
        

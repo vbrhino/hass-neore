@@ -406,60 +406,118 @@ class HeatPumpFlowCard extends HTMLElement {
             ` : ''}
           </g>
 
-          <!-- Outlet pipe (hot) -->
-          <g id="outlet-section">
-            <path id="pipe-outlet" d="M 150 200 L 250 200" 
+          ${this._config.buffer_tank ? `
+            <!-- WITH BUFFER TANK LAYOUT -->
+            <!-- Outlet pipe (hot) to buffer -->
+            <g id="outlet-section">
+              <path id="pipe-outlet" d="M 150 200 L 250 200" 
+                    stroke="${this._config.temperature.hot_color}" 
+                    stroke-width="8" fill="none"/>
+              <circle class="flow-dot" cx="150" cy="200" r="${this._config.animation.dot_size}" data-offset="0"/>
+              <circle class="flow-dot" cx="180" cy="200" r="${this._config.animation.dot_size}" data-offset="30"/>
+              <circle class="flow-dot" cx="210" cy="200" r="${this._config.animation.dot_size}" data-offset="60"/>
+              <text id="temp-outlet" x="200" y="190" text-anchor="middle" class="temp-indicator">--°C</text>
+            </g>
+
+            <!-- Buffer Tank -->
+            <g id="buffer-tank">
+              <rect x="250" y="150" width="80" height="100" 
+                    fill="${this._config.temperature.neutral_color}" 
+                    stroke="var(--primary-text-color)" stroke-width="2" rx="5"/>
+              <text x="290" y="175" text-anchor="middle" class="temp-indicator">
+                ${this._config.buffer_tank.name || 'BUFFER'}
+              </text>
+              <text id="temp-buffer-supply" x="290" y="195" text-anchor="middle" class="temp-indicator">--°C</text>
+              <text id="temp-buffer-return" x="290" y="235" text-anchor="middle" class="temp-indicator">--°C</text>
+            </g>
+
+            <!-- HVAC supply line from buffer -->
+            <path d="M 330 180 L 450 180" 
+                  stroke="${this._config.temperature.hot_color}" 
+                  stroke-width="6" fill="none"/>
+            
+            <!-- HVAC return line to buffer -->
+            <path d="M 450 220 L 330 220" 
+                  stroke="${this._config.temperature.cold_color}" 
+                  stroke-width="6" fill="none"/>
+            
+            <!-- House/HVAC Load -->
+            <g id="hvac-load">
+              <rect x="450" y="160" width="100" height="80" 
+                    fill="var(--secondary-background-color)" 
+                    stroke="var(--primary-text-color)" stroke-width="2" rx="5"/>
+              <text x="500" y="195" text-anchor="middle" class="temp-indicator">HEATING</text>
+              <text x="500" y="215" text-anchor="middle" class="temp-indicator">LOAD</text>
+              <text x="500" y="230" text-anchor="middle" class="temp-indicator" style="font-size: 9px;">(Radiators/Floor)</text>
+            </g>
+
+            <!-- Return pipe (cold) from buffer to HP -->
+            <g id="inlet-section">
+              <path id="pipe-inlet" d="M 250 240 L 150 240" 
+                    stroke="${this._config.temperature.cold_color}" 
+                    stroke-width="8" fill="none"/>
+              <circle class="flow-dot" cx="250" cy="240" r="${this._config.animation.dot_size}" data-offset="0"/>
+              <circle class="flow-dot" cx="220" cy="240" r="${this._config.animation.dot_size}" data-offset="30"/>
+              <circle class="flow-dot" cx="190" cy="240" r="${this._config.animation.dot_size}" data-offset="60"/>
+              <text id="temp-inlet" x="200" y="260" text-anchor="middle" class="temp-indicator">--°C</text>
+            </g>
+          ` : `
+            <!-- SIMPLE LAYOUT (No Buffer Tank) - Direct heating circuit -->
+            <!-- Outlet pipe (hot) from HP -->
+            <g id="outlet-section">
+              <path id="pipe-outlet" d="M 150 200 L 300 200" 
+                    stroke="${this._config.temperature.hot_color}" 
+                    stroke-width="8" fill="none"/>
+              <circle class="flow-dot" cx="170" cy="200" r="${this._config.animation.dot_size}" data-offset="0"/>
+              <circle class="flow-dot" cx="210" cy="200" r="${this._config.animation.dot_size}" data-offset="25"/>
+              <circle class="flow-dot" cx="250" cy="200" r="${this._config.animation.dot_size}" data-offset="50"/>
+              <circle class="flow-dot" cx="280" cy="200" r="${this._config.animation.dot_size}" data-offset="75"/>
+              <text id="temp-outlet" x="225" y="190" text-anchor="middle" class="temp-indicator">--°C</text>
+            </g>
+
+            <!-- Vertical pipe up to heating load -->
+            <path d="M 300 200 L 300 120" 
                   stroke="${this._config.temperature.hot_color}" 
                   stroke-width="8" fill="none"/>
-            <circle class="flow-dot" cx="150" cy="200" r="${this._config.animation.dot_size}" data-offset="0"/>
-            <circle class="flow-dot" cx="180" cy="200" r="${this._config.animation.dot_size}" data-offset="30"/>
-            <circle class="flow-dot" cx="210" cy="200" r="${this._config.animation.dot_size}" data-offset="60"/>
-            <text id="temp-outlet" x="200" y="190" text-anchor="middle" class="temp-indicator">--°C</text>
-          </g>
+            
+            <!-- Horizontal pipe to heating load -->
+            <path d="M 300 120 L 450 120" 
+                  stroke="${this._config.temperature.hot_color}" 
+                  stroke-width="8" fill="none"/>
 
-          <!-- Buffer Tank (if configured) -->
-          ${this._config.buffer_tank ? `
-          <g id="buffer-tank">
-            <rect x="250" y="150" width="80" height="100" 
-                  fill="${this._config.temperature.neutral_color}" 
-                  stroke="var(--primary-text-color)" stroke-width="2" rx="5"/>
-            <text x="290" y="175" text-anchor="middle" class="temp-indicator">
-              ${this._config.buffer_tank.name || 'BUFFER'}
-            </text>
-            <text id="temp-buffer-supply" x="290" y="195" text-anchor="middle" class="temp-indicator">--°C</text>
-            <text id="temp-buffer-return" x="290" y="235" text-anchor="middle" class="temp-indicator">--°C</text>
-          </g>
+            <!-- House/Heating Load -->
+            <g id="hvac-load">
+              <rect x="450" y="80" width="100" height="100" 
+                    fill="var(--secondary-background-color)" 
+                    stroke="var(--primary-text-color)" stroke-width="2" rx="5"/>
+              <text x="500" y="115" text-anchor="middle" class="temp-indicator">HEATING</text>
+              <text x="500" y="135" text-anchor="middle" class="temp-indicator">LOAD</text>
+              <text x="500" y="155" text-anchor="middle" class="temp-indicator" style="font-size: 9px;">(Radiators/</text>
+              <text x="500" y="168" text-anchor="middle" class="temp-indicator" style="font-size: 9px;">Floor Heating)</text>
+            </g>
 
-          <!-- HVAC supply line -->
-          <path d="M 330 180 L 450 180" 
-                stroke="${this._config.temperature.hot_color}" 
-                stroke-width="6" fill="none"/>
-          
-          <!-- HVAC return line -->
-          <path d="M 450 220 L 330 220" 
-                stroke="${this._config.temperature.cold_color}" 
-                stroke-width="6" fill="none"/>
-          
-          <!-- House/HVAC Load -->
-          <g id="hvac-load">
-            <rect x="450" y="160" width="100" height="80" 
-                  fill="var(--secondary-background-color)" 
-                  stroke="var(--primary-text-color)" stroke-width="2" rx="5"/>
-            <text x="500" y="200" text-anchor="middle" class="temp-indicator">HVAC</text>
-            <text x="500" y="220" text-anchor="middle" class="temp-indicator">LOAD</text>
-          </g>
-          ` : ''}
-
-          <!-- Return pipe (cold) -->
-          <g id="inlet-section">
-            <path id="pipe-inlet" d="M 250 240 L 150 240" 
+            <!-- Horizontal return pipe from heating load -->
+            <path d="M 450 160 L 300 160" 
                   stroke="${this._config.temperature.cold_color}" 
                   stroke-width="8" fill="none"/>
-            <circle class="flow-dot" cx="250" cy="240" r="${this._config.animation.dot_size}" data-offset="0"/>
-            <circle class="flow-dot" cx="220" cy="240" r="${this._config.animation.dot_size}" data-offset="30"/>
-            <circle class="flow-dot" cx="190" cy="240" r="${this._config.animation.dot_size}" data-offset="60"/>
-            <text id="temp-inlet" x="200" y="260" text-anchor="middle" class="temp-indicator">--°C</text>
-          </g>
+            
+            <!-- Vertical pipe down from heating load -->
+            <path d="M 300 160 L 300 240" 
+                  stroke="${this._config.temperature.cold_color}" 
+                  stroke-width="8" fill="none"/>
+
+            <!-- Return pipe (cold) back to HP -->
+            <g id="inlet-section">
+              <path id="pipe-inlet" d="M 300 240 L 150 240" 
+                    stroke="${this._config.temperature.cold_color}" 
+                    stroke-width="8" fill="none"/>
+              <circle class="flow-dot" cx="280" cy="240" r="${this._config.animation.dot_size}" data-offset="0"/>
+              <circle class="flow-dot" cx="250" cy="240" r="${this._config.animation.dot_size}" data-offset="25"/>
+              <circle class="flow-dot" cx="210" cy="240" r="${this._config.animation.dot_size}" data-offset="50"/>
+              <circle class="flow-dot" cx="170" cy="240" r="${this._config.animation.dot_size}" data-offset="75"/>
+              <text id="temp-inlet" x="225" y="260" text-anchor="middle" class="temp-indicator">--°C</text>
+            </g>
+          `}
         </svg>
 
         ${this._config.heat_pump_visual.show_metrics ? `
