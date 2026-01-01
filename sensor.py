@@ -61,7 +61,8 @@ class NeoreBaseSensor(SensorEntity):
         """Return the unit of measurement."""
         return None  # Default to None if not defined in subclass
 
-    def update(self):
+    async def async_update(self):
+        """Update the sensor state."""
         self._state = self._data_manager.get_sensor_data(self._field_name)
 
 
@@ -239,7 +240,7 @@ class NeoreTemperatureDelta(SensorEntity):
         """Return the suggested display precision."""
         return 1
     
-    def update(self):
+    async def async_update(self):
         """Calculate temperature delta."""
         try:
             output_temp = self._data_manager.get_sensor_data(self._output_field)
@@ -294,7 +295,7 @@ class NeoreCOP(SensorEntity):
         """Return the suggested display precision."""
         return 2
     
-    def update(self):
+    async def async_update(self):
         """Calculate COP (Coefficient of Performance)."""
         try:
             flow = self._data_manager.get_sensor_data(self._flow_field)
