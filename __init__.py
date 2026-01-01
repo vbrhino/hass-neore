@@ -43,7 +43,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
         _LOGGER.info("Neore sensor platform loaded successfully")
     except Exception as e:
-        _LOGGER.error("Failed to load Neore sensor platform: %s", e, exc_info=True)
+        _LOGGER.error(
+            "Failed to load Neore sensor platform: %s. "
+            "Check your configuration and restart Home Assistant. "
+            "If the issue persists, check that the sensor component is properly loaded.",
+            e, 
+            exc_info=True
+        )
         # Don't fail setup if sensor platform fails
     
     return True

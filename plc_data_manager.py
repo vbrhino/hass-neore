@@ -14,21 +14,15 @@ class NeoreDataManager:
     _lock = Lock()
 
     def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            with cls._lock:
-                # Double-check locking pattern
-                if not cls._instance:
-                    cls._instance = super(NeoreDataManager, cls).__new__(cls)
+        with cls._lock:
+            if not cls._instance:
+                cls._instance = super(NeoreDataManager, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, plc_url, username, password):
         # Only initialize once - use instance variable
-        # Check if already initialized using getattr with default
-        if getattr(self, '_initialized', False):
-            return
-            
         with self._lock:
-            # Double-check after acquiring lock
+            # Check if already initialized using getattr with default
             if getattr(self, '_initialized', False):
                 return
                 
