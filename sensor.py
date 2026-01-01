@@ -1,6 +1,9 @@
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from datetime import timedelta
+import logging
 from . import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=30)  # Set the desired update interval (e.g., 30 seconds)
 
@@ -8,8 +11,16 @@ ENERGY_ENDPOINT = "PAGE70.XML"
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Setup the Neore sensor platform."""
+    _LOGGER.info("Neore sensor platform setup called")
+    _LOGGER.debug("Config: %s, Discovery info: %s", config, discovery_info)
+    
     # Retrieve configuration from hass.data
+    if DOMAIN not in hass.data:
+        _LOGGER.error("Neore domain data not found in hass.data")
+        return
+    
     data_manager = hass.data[DOMAIN]['data_manager']
+    _LOGGER.info("Retrieved data manager from hass.data")
 
     # Create sensor instances
     sensors = [
@@ -28,8 +39,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         NeoreTemperatureDelta("Neore Temperature Delta", data_manager, ENERGY_ENDPOINT, "__R15104_REAL_.1f", "__R7096_REAL_.1f"),
         NeoreCOP("Neore COP", data_manager, ENERGY_ENDPOINT, "__R7083_REAL_.1f", "__R15104_REAL_.1f", "__R7096_REAL_.1f", "__R7087_REAL_.1f"),
     ]
-
+    
+    _LOGGER.info("Created %d sensor entities, adding to Home Assistant", len(sensors))
     async_add_entities(sensors)
+    _LOGGER.info("Neore sensors added successfully")
 
 
 
