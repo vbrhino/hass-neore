@@ -1,0 +1,33 @@
+# Example configuration.yaml for Neore Heat Pump Integration
+
+# Basic Configuration
+neore:
+  host: "http://192.168.0.152"  # Replace with your heat pump IP
+  username: !secret neore_username
+  password: !secret neore_password
+
+# Add to secrets.yaml:
+# neore_username: your_username
+# neore_password: your_password
+
+# Optional: Customize sensor names (add under 'homeassistant:' section)
+homeassistant:
+  customize:
+    sensor.neore_actual_power_usage:
+      friendly_name: "Warmtepomp Vermogen"
+    sensor.neore_output_temperature:
+      friendly_name: "Warmtepomp Uitgang Temp"
+    sensor.neore_input_temperature:
+      friendly_name: "Warmtepomp Ingang Temp"
+    sensor.neore_water_flow:
+      friendly_name: "Warmtepomp Debiet"
+    sensor.neore_cop:
+      friendly_name: "Warmtepomp COP"
+    sensor.neore_outdoor_temperature:
+      friendly_name: "Buiten Temperatuur"
+    sensor.neore_object_temperature:
+      friendly_name: "Kamer Temperatuur"
+
+# Optional: Add to Energy Dashboard
+# Go to Settings -> Dashboards -> Energy -> Add Consumption
+# Select: sensor.neore_supplied_power
