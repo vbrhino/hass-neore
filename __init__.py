@@ -4,7 +4,7 @@ import logging
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers import discovery
+from homeassistant.helpers import entity_component
 from .plc_data_manager import NeoreDataManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,17 +33,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         'config': config[DOMAIN]
     }
     
-    _LOGGER.info("Neore data manager stored, loading sensor platform")
+    _LOGGER.info("Neore data manager stored, setting up sensor entities")
 
-    # Load the sensor platform
-    await discovery.async_load_platform(
-        hass,
-        'sensor',
-        DOMAIN,
-        {},
-        config
+    # Import sensor module and set up sensors directly
+    from . import sensor
+    
+    # Get or create the sensor component
+    component = entity_component.EntityComponent(_LOGGER, 'sensor', hass)
+    
+    # Set up the sensor platform
+    await sensor.async_setup_platform(
+        hass, 
+        config.get(DOMAIN, {}), 
+        component.async_add_entities,
+        None
     )
     
-    _LOGGER.info("Neore sensor platform load initiated")
+    _LOGGER.info("Neore sensor entities setup complete")
 
     return True
