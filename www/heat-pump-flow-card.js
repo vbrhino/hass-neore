@@ -196,14 +196,21 @@ class HeatPumpFlowCard extends HTMLElement {
   getTemperatureColor(temp) {
     if (temp === null) return this._config.temperature.neutral_color;
     
+    // Use threshold to determine color based on absolute temperature
+    // For heating: temps above threshold are hot (red)
+    // For cooling: temps below negative threshold are cold (blue)
     const threshold = this._config.temperature.delta_threshold;
     const hotColor = this._config.temperature.hot_color;
     const coldColor = this._config.temperature.cold_color;
     const neutralColor = this._config.temperature.neutral_color;
 
-    if (temp > threshold) {
+    // Compare against typical room temperature (20°C)
+    const roomTemp = 20;
+    const tempDiff = temp - roomTemp;
+
+    if (tempDiff > threshold) {
       return hotColor;
-    } else if (temp < -threshold) {
+    } else if (tempDiff < -threshold) {
       return coldColor;
     } else {
       return neutralColor;
@@ -261,6 +268,12 @@ class HeatPumpFlowCard extends HTMLElement {
       const maxFlow = this._config.animation.max_flow_rate_value;
       const minSpeed = this._config.animation.min_flow_rate;
       const maxSpeed = this._config.animation.max_flow_rate;
+      
+      // Prevent division by zero
+      if (maxFlow <= 0) {
+        this.stopAnimation();
+        return;
+      }
       
       const speed = minSpeed + ((maxSpeed - minSpeed) * (flow / maxFlow));
       

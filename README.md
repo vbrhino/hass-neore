@@ -298,10 +298,10 @@ display:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `delta_threshold` | `10` | Temperature difference for hot/cold colors (°C) |
-| `hot_color` | `#e74c3c` | Color for hot pipes |
-| `cold_color` | `#3498db` | Color for cold pipes |
-| `neutral_color` | `#95a5a6` | Color for neutral temperature |
+| `delta_threshold` | `10` | Temperature difference from room temp (20°C) for hot/cold colors (°C) |
+| `hot_color` | `#e74c3c` | Color for hot pipes (above room temp + threshold) |
+| `cold_color` | `#3498db` | Color for cold pipes (below room temp - threshold) |
+| `neutral_color` | `#95a5a6` | Color for neutral temperature (within threshold range) |
 | `unit` | `C` | Temperature unit (C or F) |
 
 ## Belgian Context
@@ -380,7 +380,7 @@ This project is licensed under the MIT License.
 
 ## Changelog
 
-### Version 1.0.0 (2026-01-01)
+### Version 1.0.0 (2024-01-01)
 - Initial release with flow visualization card
 - Full Neore heat pump sensor integration
 - Belgian-specific configuration examples

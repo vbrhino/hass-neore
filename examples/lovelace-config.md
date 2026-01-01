@@ -12,6 +12,8 @@ heat_pump:
   inlet_temp_entity: sensor.neore_input_temperature
   flow_rate_entity: sensor.neore_water_flow
   display_name: "Neore"
+  # Optional: thermal_entity for thermal output display
+  # thermal_entity: sensor.neore_supplied_power
 ```
 
 ## Recommended Configuration (Belgian Setup)
