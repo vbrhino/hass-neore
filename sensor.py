@@ -91,11 +91,21 @@ class NeoreCirculationPercent(NeoreBaseSensor): # __R15173_REAL_.0f
     @property
     def unit_of_measurement(self):
         return "%"
+    
+    @property
+    def suggested_display_precision(self):
+        """Return the suggested display precision."""
+        return 0
 
 class NeoreOutdoorUnitCirculationPercent(NeoreBaseSensor): # __R7070_REAL_.0f
     @property
     def unit_of_measurement(self):
         return "%"
+    
+    @property
+    def suggested_display_precision(self):
+        """Return the suggested display precision."""
+        return 0
 
 class NeoreOutputTemperature(NeoreBaseSensor): # __R15104_REAL_.1f
     @property
