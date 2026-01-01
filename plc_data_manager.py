@@ -19,13 +19,17 @@ class NeoreDataManager:
                 # Double-check locking pattern
                 if not cls._instance:
                     cls._instance = super(NeoreDataManager, cls).__new__(cls)
-                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self, plc_url, username, password):
         # Only initialize once - use instance variable
+        # Check if already initialized (handles case where _initialized might not exist yet)
+        if hasattr(self, '_initialized') and self._initialized:
+            return
+            
         with self._lock:
-            if self._initialized:
+            # Double-check after acquiring lock
+            if hasattr(self, '_initialized') and self._initialized:
                 return
                 
             self._plc_url = plc_url

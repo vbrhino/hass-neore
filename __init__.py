@@ -32,26 +32,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         'config': config[DOMAIN]
     }
     
-    _LOGGER.info("Neore data manager stored, setting up sensor entities")
+    _LOGGER.info("Neore data manager stored, loading sensor platform")
 
-    # Import sensor module and set up sensors directly
-    from . import sensor
+    # Load sensor platform asynchronously
+    # Import here to avoid circular imports
+    from homeassistant.helpers import discovery
     
-    # Use hass.helpers to set up the platform properly
-    # Get the sensor component
-    sensor_component = hass.data.get('sensor')
-    if sensor_component is None:
-        _LOGGER.error("Sensor component not loaded yet")
-        return False
-    
-    # Call the sensor platform setup function directly
-    await sensor.async_setup_platform(
-        hass, 
-        config.get(DOMAIN, {}), 
-        sensor_component.async_add_entities,
-        None
+    # Schedule the platform to be loaded
+    hass.async_create_task(
+        discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
     )
     
-    _LOGGER.info("Neore sensor entities setup complete")
+    _LOGGER.info("Neore sensor platform loading task created")
 
     return True
