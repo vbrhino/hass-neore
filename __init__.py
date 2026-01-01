@@ -1,8 +1,7 @@
 DOMAIN = 'neore'
 
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_HOST, Platform
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import ConfigType
 from .plc_data_manager import NeoreDataManager
 
@@ -26,6 +25,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     }
 
     # Setup the sensor platform using async discovery
-    await hass.helpers.discovery.async_load_platform(hass, Platform.SENSOR, DOMAIN, {}, config)
+    await hass.helpers.discovery.async_load_platform('sensor', DOMAIN, {}, config)
 
     return True
