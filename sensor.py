@@ -14,12 +14,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     _LOGGER.info("Neore sensor platform setup called")
     _LOGGER.debug("Config: %s, Discovery info: %s", config, discovery_info)
     
-    # Retrieve configuration from hass.data
+    # Retrieve data manager from hass.data
     if DOMAIN not in hass.data:
         _LOGGER.error("Neore domain data not found in hass.data")
         return
     
-    data_manager = hass.data[DOMAIN]['data_manager']
+    data_manager = hass.data[DOMAIN]
     _LOGGER.info("Retrieved data manager from hass.data")
 
     # Create sensor instances

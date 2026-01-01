@@ -26,11 +26,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         config[DOMAIN][CONF_PASSWORD]
     )
 
-    # Store configuration in hass.data for use in platform setup
-    hass.data[DOMAIN] = {
-        'data_manager': data_manager,
-        'config': config[DOMAIN]
-    }
+    # Store data manager in hass.data for use in platform setup
+    hass.data[DOMAIN] = data_manager
     
     _LOGGER.info("Neore data manager stored, loading sensor platform")
 
@@ -40,7 +37,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     
     # Load the platform - await it to ensure proper error handling
     try:
-        await discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
+        await discovery.async_load_platform(hass, 'sensor', DOMAIN, None, config)
         _LOGGER.info("Neore sensor platform loaded successfully")
     except Exception as e:
         _LOGGER.error(
