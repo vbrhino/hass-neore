@@ -2,7 +2,7 @@ import logging
 import time
 import requests
 import xml.etree.ElementTree as ET
-from threading import Thread
+from threading import Thread, Lock
 from .authentication import NeoreSessionManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -11,28 +11,33 @@ COOLDOWN_TIME = 30
 
 class NeoreDataManager:
     _instance = None
-    _initialized = False
+    _lock = Lock()
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(NeoreDataManager, cls).__new__(cls)
+            with cls._lock:
+                # Double-check locking pattern
+                if not cls._instance:
+                    cls._instance = super(NeoreDataManager, cls).__new__(cls)
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self, plc_url, username, password):
-        # Only initialize once
-        if self._initialized:
-            return
-            
-        self._plc_url = plc_url
-        self._username = username
-        self._password = password
-        self._data_map = {}  # Map to store data
-        self._current_endpoint_idx = 0
-        self._update_thread = Thread(target=self._update_data)
-        self._update_thread.daemon = True
-        self._update_thread.start()
-        self._initialized = True
-        _LOGGER.info("NeoreDataManager initialized and update thread started")
+        # Only initialize once - use instance variable
+        with self._lock:
+            if self._initialized:
+                return
+                
+            self._plc_url = plc_url
+            self._username = username
+            self._password = password
+            self._data_map = {}  # Map to store data
+            self._current_endpoint_idx = 0
+            self._update_thread = Thread(target=self._update_data)
+            self._update_thread.daemon = True
+            self._update_thread.start()
+            self._initialized = True
+            _LOGGER.info("NeoreDataManager initialized and update thread started")
 
     def _update_data(self):
         _LOGGER.info("NeoreDataManager update thread started")

@@ -4,7 +4,6 @@ import logging
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers import entity_component
 from .plc_data_manager import NeoreDataManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,14 +37,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Import sensor module and set up sensors directly
     from . import sensor
     
-    # Get or create the sensor component
-    component = entity_component.EntityComponent(_LOGGER, 'sensor', hass)
+    # Use hass.helpers to set up the platform properly
+    # Get the sensor component
+    sensor_component = hass.data.get('sensor')
+    if sensor_component is None:
+        _LOGGER.error("Sensor component not loaded yet")
+        return False
     
-    # Set up the sensor platform
+    # Call the sensor platform setup function directly
     await sensor.async_setup_platform(
         hass, 
         config.get(DOMAIN, {}), 
-        component.async_add_entities,
+        sensor_component.async_add_entities,
         None
     )
     
