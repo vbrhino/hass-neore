@@ -1,10 +1,11 @@
 {
   "domain": "neore",
   "name": "Neore Heatpump",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "documentation": "https://github.com/vbrhino/hass-neore",
   "dependencies": [],
   "codeowners": ["@rhinovb"],
   "iot_class": "local_polling",
-  "integration_type": "device"
+  "integration_type": "device",
+  "requirements": []
 }

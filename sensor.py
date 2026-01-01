@@ -1,13 +1,12 @@
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from datetime import timedelta
 from . import DOMAIN
-from homeassistant.const import DEVICE_CLASS_ENERGY
 
 SCAN_INTERVAL = timedelta(seconds=30)  # Set the desired update interval (e.g., 30 seconds)
 
 ENERGY_ENDPOINT = "PAGE70.XML"
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Setup the Neore sensor platform."""
     # Retrieve configuration from hass.data
     data_manager = hass.data[DOMAIN]['data_manager']
@@ -27,7 +26,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         NeoreWaterPressure("Neore Water Pressure", data_manager, ENERGY_ENDPOINT, "__R7297_REAL_.1f"),
     ]
 
-    add_entities(sensors)
+    async_add_entities(sensors)
 
 
 
@@ -116,7 +115,7 @@ class NeoreSuppliedPower(NeoreBaseSensor): # __R7091_REAL_.0f
     @property
     def device_class(self):
         """Return the class of this device."""
-        return DEVICE_CLASS_ENERGY
+        return SensorDeviceClass.ENERGY
 
 class NeoreWaterPressure(NeoreBaseSensor): # __R7297_REAL_.1f
     @property
