@@ -37,6 +37,8 @@ class NeoreBaseSensor(SensorEntity):
         self._data_manager  = data_manager
         self._endpoint = endpoint
         self._field_name = field_name
+        # Generate a unique_id based on the field name
+        self._attr_unique_id = f"neore_{field_name}"
 
     @property
     def name(self):
@@ -45,6 +47,11 @@ class NeoreBaseSensor(SensorEntity):
     @property
     def state(self):
         return self._state
+    
+    @property
+    def unique_id(self):
+        """Return a unique ID for this sensor."""
+        return self._attr_unique_id
 
     @property
     def unit_of_measurement(self):
