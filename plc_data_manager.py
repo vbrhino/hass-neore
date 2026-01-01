@@ -24,6 +24,14 @@ class NeoreDataManager:
         with self._lock:
             # Check if already initialized using getattr with default
             if getattr(self, '_initialized', False):
+                # Log if trying to reinitialize with different parameters
+                if (self._plc_url != plc_url or 
+                    self._username != username or 
+                    self._password != password):
+                    _LOGGER.warning(
+                        "NeoreDataManager already initialized with different parameters. "
+                        "Using existing instance with original parameters."
+                    )
                 return
                 
             self._plc_url = plc_url

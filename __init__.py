@@ -37,7 +37,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     
     # Load the platform - await it to ensure proper error handling
     try:
-        await discovery.async_load_platform(hass, 'sensor', DOMAIN, None, config)
+        await discovery.async_load_platform(hass, 'sensor', DOMAIN, {}, config)
         _LOGGER.info("Neore sensor platform loaded successfully")
     except Exception as e:
         _LOGGER.error(
