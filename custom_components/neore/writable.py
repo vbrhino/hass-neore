@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 import logging
+import re
 from typing import Any
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -13,6 +14,19 @@ from .entity import NeoreRegisterEntity, display_name
 from .gateway import GatewayAuthError, GatewayClient, GatewayError, GatewayWriteRefused, GatewayWriteUnknown
 
 _LOGGER = logging.getLogger(__name__)
+
+# Registers that switch the heat pump or one of its functions on/off, or change its mode.
+_SWITCHING_ROLES = {"mode", "on_off", "power"}
+_SWITCHING_ID = re.compile(r"(^|_)(mode|on_off|onoff|power|enable|enabled)(_|$)")
+
+
+def switches_plant(register: dict[str, Any]) -> bool:
+    """On/off or mode registers: their entities start disabled, so enabling one is a deliberate act."""
+    return (
+        register.get("type") == "bool"
+        or register.get("role") in _SWITCHING_ROLES
+        or bool(_SWITCHING_ID.search(str(register["id"])))
+    )
 
 
 def writable_registers(entry: NeoreConfigEntry, match: Callable[[dict[str, Any]], bool]) -> list[dict[str, Any]]:
@@ -31,7 +45,7 @@ class NeoreWritable(NeoreRegisterEntity):
         self._client = client
         self._register = register
         self._register_id: str = register["id"]
-        self._attr_entity_registry_enabled_default = not register.get("deprecated")
+        self._attr_entity_registry_enabled_default = not register.get("deprecated") and not switches_plant(register)
 
     @property
     def current(self) -> Any:

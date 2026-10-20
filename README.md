@@ -57,7 +57,10 @@ These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register
 - With `/api/derived` on the gateway: `Neore Electric Power Estimate` (kW) and `Neore COP Estimate`, with
   attributes `low`, `high`, `label`, `basis`. Label `onbekend` → state unknown.
 - `access: rw` registers (API token required) become `number` (real/int) or `switch` (bool); enum
-  registers get no entity yet. Attributes show `write_mode` (shadow/live), `min`, `max`, `max_step`.
+  registers get no entity yet.
+  - On/off and mode registers (type `bool`, or an id containing `mode`, `on_off`, `power`, `enable`) start
+    **disabled**; enable them deliberately.
+  - A numeric register without both `min` and `max` in the map gets no entity (warning in the log). Attributes show `write_mode` (shadow/live), `min`, `max`, `max_step`.
 
 ## Writes
 
