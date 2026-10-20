@@ -1,25 +1,62 @@
 # Neore Heatpump for Home Assistant
 
-Home Assistant integration for a NeoRé heat pump (Tecomat Foxtrot PLC), as a thin client of
+Home Assistant integration for a NeoRé heat pump with a Tecomat Foxtrot PLC, as a thin client of
 [neore-gateway](https://github.com/vbrhino/neore-gateway).
+
+Unofficial: not made or supported by NeoRé or Teco. Writes to the heat pump are at your own risk.
 
 **The gateway is required.** The PLC allows one session per user; the gateway holds it, within a load
 budget, and this integration only reads the gateway's REST API. The integration never logs in to the PLC.
+The gateway must be the **only** PLC client: stop the old YAML integration and any other tool polling the
+PLC web server, or they take each other's session.
 
-## Install
+Tested hardware: NeoRé heat pump with Tecomat Foxtrot PLC, TECO Web Server v11.0. One installation; other
+models or firmware may expose different pages and registers (steps 2-3 below find them).
 
-- HACS: add this repository as a custom repository (category *Integration*), install, restart.
-- Manual: copy `custom_components/neore/` to `<config>/custom_components/neore/`, restart.
+## Getting started
 
-Then *Settings > Devices & services > Add integration > Neore Heatpump*:
+Details for steps 1-4 are in the [neore-gateway README](https://github.com/vbrhino/neore-gateway#readme).
+
+1. **Install the gateway** on an always-on Linux host with Docker on the same LAN as the PLC: clone
+   neore-gateway, `python3.13 -m venv .venv && .venv/bin/pip install -e .` for the CLI.
+2. **Probe and discover the PLC** (credentials file `USER=`/`PASS=`, mode 600):
+   `neore-gateway-cli probe --url http://<plc-ip>/` (one login), then
+   `neore-gateway-cli discover --url http://<plc-ip>/` (capped crawl into `./cache/plc`).
+3. **Map**: `neore-gateway-cli candidates --yaml` drafts registers from the cache (always `access: r`).
+   Copy the bundled `neore-default.yaml`, add/verify registers, point `NEORE_MAP` at it. The default map
+   carries the 13 sensors below.
+4. **Run the gateway**: in `deploy/`, `.env` with `NEORE_PLC_URL`, secrets `neore_credentials` and
+   `api_token`, `APP_UID=$(id -u) docker compose up -d --build`. Check
+   `curl http://<gateway-host>:8470/api/health` → `"status": "ok"`, `"plc": "online"`. Every register starts
+   in `shadow` mode: writes are validated and audited, never sent.
+5. **Remove the old YAML** `neore:` block (if any) and restart Home Assistant; see
+   [Migrating from YAML](#migrating-from-yaml) to keep history.
+6. **Install this integration**: HACS > custom repository (category *Integration*) > install > restart.
+   Manual: copy `custom_components/neore/` to `<config>/custom_components/neore/`.
+7. **Add it**: *Settings > Devices & services > Add integration > Neore Heatpump*.
 
 | Field | |
 |---|---|
-| Gateway URL | e.g. `http://192.168.1.10:8470`; validated via `GET /api/health` |
-| API token | optional; the gateway's bearer token. Without it, writable registers are not exposed. Checked with a dry-run `POST /api/write?dry_run=1` on a register that does not exist (nothing is written) |
+| Gateway URL | see below; validated via `GET /api/health` |
+| API token | optional; the content of the gateway's `api_token` secret. Without it, writable registers are not exposed. Checked with a dry-run `POST /api/write?dry_run=1` on a register that does not exist (nothing is written) |
 
-Change either later via *Neore > Reconfigure*. When the gateway answers a write with 401, Home Assistant asks for the new
-token (re-authentication).
+Gateway URL:
+
+| Home Assistant runs | Gateway runs | URL |
+|---|---|---|
+| HAOS, or any install | on another host | `http://<gateway-host-ip>:8470` |
+| Docker, host network | same machine | `http://127.0.0.1:8470` (the default) |
+
+With `NEORE_HTTP_HOST=127.0.0.1` the gateway only answers on its own host: HAOS on another host cannot reach it.
+
+Change either field later via *Neore > Reconfigure*. When the gateway answers a write with 401, Home Assistant
+asks for the new token (re-authentication).
+
+## Security
+
+LAN only. The gateway speaks plain `http`; the token travels as a bearer header in clear text. Its GET routes
+(values, map, health) have no authentication and bind `0.0.0.0` by default. Run it on a trusted LAN or
+loopback, never expose port 8470 to the internet, and rotate the token if it may have leaked.
 
 ## Migrating from YAML
 
@@ -33,6 +70,15 @@ The `neore:` block (`host`, `username`, `password`) is no longer used.
 
 Existing entities keep their `unique_id`, `entity_id`, name and unit, so history, long-term statistics and
 the Energy dashboard continue.
+
+Names stay full ("Neore Water Flow") with `has_entity_name` off: with it on, Home Assistant would prefix the
+device name ("Neore Neore Water Flow") and create new entity ids.
+
+Added metadata: the YAML integration set no device or state class on most sensors. This one adds
+`device_class` `temperature` (6 temperature sensors) and `volume_flow_rate` (water flow), and
+`state_class: measurement` on those 7 plus both percentages and water pressure. Home Assistant starts
+long-term statistics for them from the update; existing history is untouched. Actual power usage, supplied
+power, temperature delta and COP keep the classes they had.
 
 ## Entities
 
@@ -74,6 +120,8 @@ These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register
   connection: unknown whether the write was applied. In both cases check the sensor and the gateway audit
   log before trying again.
 - In `shadow` mode a write is audited as `would_write` and not sent; the service call says so.
+- Shadow or live per register: the `write_mode` attribute of its entity. Switching to `live` is done on the
+  gateway only (map approval + `POST /api/mode` with a confirmation), never from Home Assistant.
 
 ## Unreachable gateway or PLC
 
