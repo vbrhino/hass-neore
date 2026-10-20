@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import LEGACY, LegacySensor
 from .coordinator import NeoreConfigEntry, NeoreCoordinator
-from .entity import NeoreEntity, display_name
+from .entity import NeoreEntity, NeoreRegisterEntity, display_name
 
 PARALLEL_UPDATES = 0
 
@@ -57,12 +57,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class _StateSensor(NeoreEntity, SensorEntity):
-    _register_id: str
-
-    def _reading(self) -> dict[str, Any]:
-        return self.coordinator.data.register(self._register_id) or {}
-
+class _StateSensor(NeoreRegisterEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         return self._reading().get("value")

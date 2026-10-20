@@ -13,7 +13,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 
-from .const import CONF_TOKEN, CONF_URL, DOMAIN, ISSUE_UNREACHABLE, ISSUE_YAML
+from .const import CONF_TOKEN, CONF_URL, DOMAIN, ISSUE_PLC_OFFLINE, ISSUE_UNREACHABLE, ISSUE_YAML
 from .coordinator import NeoreConfigEntry, NeoreCoordinator, NeoreRuntime
 from .gateway import GatewayClient, GatewayError
 
@@ -61,4 +61,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: NeoreConfigEntry) -> boo
 
 async def async_unload_entry(hass: HomeAssistant, entry: NeoreConfigEntry) -> bool:
     ir.async_delete_issue(hass, DOMAIN, ISSUE_UNREACHABLE)
+    ir.async_delete_issue(hass, DOMAIN, ISSUE_PLC_OFFLINE)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

@@ -66,10 +66,16 @@ These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register
 - A refusal raises an error carrying the gateway's `result` (`interlock`, `step_too_large`, …).
 - In `shadow` mode a write is audited as `would_write` and not sent; the service call reports that.
 
-## Unreachable gateway
+## Unreachable gateway or PLC
 
 Values stay for 3 failed polls (30 s each). From the 4th, entities are unavailable and a repair issue opens;
-the first good poll closes it. Diagnostics (token redacted): *Neore > ⋮ > Download diagnostics*.
+the first good poll closes it.
+
+A register whose `quality` in `/api/state` is not `good` (`stale`, `bad`, `missing`) is unavailable, so an
+old value never looks current. When the gateway reports `plc: offline`, all entities are unavailable at
+once; after 3 such polls a *Neore PLC offline* repair issue opens.
+
+Diagnostics (token redacted): *Neore > ⋮ > Download diagnostics*.
 
 ## Tests
 

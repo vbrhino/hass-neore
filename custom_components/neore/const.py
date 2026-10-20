@@ -15,10 +15,12 @@ DEFAULT_URL = "http://127.0.0.1:8470"
 SCAN_INTERVAL = timedelta(seconds=30)
 REQUEST_TIMEOUT = 10
 # Entities go unavailable and a repair issue opens after this many failed polls in a row.
+# A repair issue also opens after this many polls in a row with the PLC offline.
 MAX_FAILED_POLLS = 3
 
 ISSUE_YAML = "deprecated_yaml"
 ISSUE_UNREACHABLE = "gateway_unreachable"
+ISSUE_PLC_OFFLINE = "plc_offline"
 
 MANUFACTURER = "NeoRé"
 DEVICE_NAME = "Neore"

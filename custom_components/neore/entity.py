@@ -1,6 +1,8 @@
 """Shared entity base."""
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -23,6 +25,24 @@ class NeoreEntity(CoordinatorEntity[NeoreCoordinator]):
             model="neore-gateway",
             configuration_url=coordinator.client.url,
         )
+
+    @property
+    def available(self) -> bool:
+        """Unavailable while the gateway reports the PLC offline: its values are no longer current."""
+        return super().available and self.coordinator.data.plc_online
+
+
+class NeoreRegisterEntity(NeoreEntity):
+    """An entity backed by one register in /api/state; unavailable unless its quality is `good`."""
+
+    _register_id: str
+
+    def _reading(self) -> dict[str, Any]:
+        return self.coordinator.data.register(self._register_id) or {}
+
+    @property
+    def available(self) -> bool:
+        return super().available and self._reading().get("quality") == "good"
 
 
 def display_name(register: dict) -> str:

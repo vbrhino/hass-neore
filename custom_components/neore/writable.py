@@ -9,7 +9,7 @@ from typing import Any
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from .coordinator import NeoreConfigEntry, NeoreCoordinator
-from .entity import NeoreEntity, display_name
+from .entity import NeoreRegisterEntity, display_name
 from .gateway import GatewayAuthError, GatewayClient, GatewayError, GatewayWriteRefused
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,16 +25,13 @@ def writable_registers(entry: NeoreConfigEntry, match: Callable[[dict[str, Any]]
     return regs
 
 
-class NeoreWritable(NeoreEntity):
+class NeoreWritable(NeoreRegisterEntity):
     def __init__(self, coordinator: NeoreCoordinator, client: GatewayClient, register: dict[str, Any]) -> None:
         super().__init__(coordinator, register.get("unique_id") or f"neore_{register['id']}", display_name(register))
         self._client = client
         self._register = register
         self._register_id: str = register["id"]
         self._attr_entity_registry_enabled_default = not register.get("deprecated")
-
-    def _reading(self) -> dict[str, Any]:
-        return self.coordinator.data.register(self._register_id) or {}
 
     @property
     def current(self) -> Any:
