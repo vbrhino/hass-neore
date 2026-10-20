@@ -16,9 +16,10 @@ Then *Settings > Devices & services > Add integration > Neore Heatpump*:
 | Field | |
 |---|---|
 | Gateway URL | e.g. `http://192.168.1.10:8470`; validated via `GET /api/health` |
-| API token | optional; the gateway's bearer token. Without it, writable registers are not exposed |
+| API token | optional; the gateway's bearer token. Without it, writable registers are not exposed. Checked with a dry-run `POST /api/write?dry_run=1` on a register that does not exist (nothing is written) |
 
-Change either later via *Neore > Reconfigure*.
+Change either later via *Neore > Reconfigure*. When the gateway answers a write with 401, Home Assistant asks for the new
+token (re-authentication).
 
 ## Migrating from YAML
 

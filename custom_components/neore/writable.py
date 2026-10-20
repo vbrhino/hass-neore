@@ -72,7 +72,8 @@ class NeoreWritable(NeoreRegisterEntity):
         except GatewayWriteRefused as err:
             raise HomeAssistantError(_refusal_text(reg, err)) from err
         except GatewayAuthError as err:
-            raise HomeAssistantError(f"neore-gateway rejected the API token: {err}") from err
+            self.coordinator.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(f"neore-gateway rejected the API token, write to {reg} not sent: {err}") from err
         except GatewayWriteUnknown as err:
             await self.coordinator.async_request_refresh()
             raise HomeAssistantError(

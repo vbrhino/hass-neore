@@ -1,4 +1,6 @@
 """Config flow, reconfigure and the YAML import."""
+import pytest
+
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import issue_registry as ir
@@ -16,6 +18,54 @@ async def test_user_step_creates_entry(hass, gateway):
         result["flow_id"], {"url": URL + "/", "token": TOKEN})
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {"url": URL, "token": TOKEN}
+    (call,) = gateway.posts()  # token checked with a dry run on a register that does not exist
+    assert call[1].query["dry_run"] == "1"
+    assert call[2]["register"] == "__neore_token_check__"
+    assert call[3]["Authorization"] == f"Bearer {TOKEN}"
+    await hass.async_block_till_done()
+
+
+async def test_user_step_without_token_skips_check(hass, gateway):
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"url": URL})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert gateway.posts() == []
+    await hass.async_block_till_done()
+
+
+@pytest.mark.parametrize(("status", "body"), [
+    (200, {"result": "not_allowed", "register": "__neore_token_check__", "applied": False}),  # dry run
+    (404, {"error": "unknown_register"}),
+    (409, {"result": "not_allowed", "register": "__neore_token_check__", "applied": False}),
+])
+async def test_token_accepted_unless_401(hass, gateway, status, body):
+    gateway.install(write=(status, body))
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"url": URL, "token": TOKEN})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+
+
+async def test_user_step_invalid_token(hass, gateway):
+    gateway.install(write=(401, {"error": "unauthorized", "detail": None}))
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"url": URL, "token": "wrong"})
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+
+
+async def test_reauth_sets_new_token(hass, gateway):
+    entry = make_entry("old")
+    entry.add_to_hass(hass)
+    result = await entry.start_reauth_flow(hass)
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == "reauth_confirm"
+    gateway.install(write=(401, {"error": "unauthorized", "detail": None}))
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"token": "still-wrong"})
+    assert result["errors"] == {"base": "invalid_auth"}
+    gateway.install()
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"token": TOKEN})
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reauth_successful"
+    assert entry.data == {"url": URL, "token": TOKEN}
     await hass.async_block_till_done()
 
 

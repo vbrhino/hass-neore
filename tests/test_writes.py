@@ -100,6 +100,9 @@ async def test_bad_token(hass, gateway):
     with pytest.raises(HomeAssistantError, match="token"):
         await hass.services.async_call("switch", "turn_off", {
             "entity_id": _eid(hass, "switch", "neore_backup_heater_enable")}, blocking=True)
+    await hass.async_block_till_done()
+    (flow,) = hass.config_entries.flow.async_progress_by_handler("neore")
+    assert flow["context"]["source"] == "reauth"
 
 
 async def _set_number(hass):

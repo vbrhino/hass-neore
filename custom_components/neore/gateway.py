@@ -9,6 +9,10 @@ import aiohttp
 from .const import REQUEST_TIMEOUT
 
 
+# Not a register id in any map: the token check's dry run is refused (not_allowed) after the auth check.
+TOKEN_PROBE_REGISTER = "__neore_token_check__"
+
+
 class GatewayError(Exception):
     """Gateway unreachable or answered with something unusable."""
 
@@ -70,6 +74,26 @@ class GatewayClient:
     async def derived(self) -> dict[str, Any] | None:
         """Phase-2 endpoint; None when the gateway does not serve it (404)."""
         return await self._get("/api/derived", allow_404=True)
+
+    async def check_token(self) -> None:
+        """Raise GatewayAuthError when the gateway rejects the token. A dry run on a register that does not exist:
+        the auth check runs first, then the WriteGuard refuses; nothing is written or audited."""
+        if not self._token:
+            raise GatewayAuthError("no API token configured")
+        body = {"register": TOKEN_PROBE_REGISTER, "value": 0, "reason": "token check", "actor": "home-assistant"}
+        try:
+            async with self._session.post(
+                f"{self.url}/api/write",
+                params={"dry_run": "1"},
+                json=body,
+                headers={"Authorization": f"Bearer {self._token}"},
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+            ) as resp:
+                status = resp.status
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            raise GatewayError(f"POST /api/write?dry_run=1: {err!r}") from err
+        if status == 401:
+            raise GatewayAuthError("unauthorized")
 
     async def write(self, register: str, value: Any, reason: str) -> dict[str, Any]:
         """POST /api/write. Returns the WriteResult on 200; raises on anything else."""
