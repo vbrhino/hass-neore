@@ -46,3 +46,16 @@ async def test_missing_value_is_unknown(hass, gateway):
     gateway.install()
     await setup_entry(hass, make_entry())
     assert hass.states.get(ENTITY).state == "unknown"
+
+
+async def test_failing_derived_does_not_fail_polls(hass, gateway):
+    from conftest import URL
+
+    entry = await setup_entry(hass, make_entry())
+    gateway.mock.clear_requests()
+    gateway.mock.get(f"{URL}/api/state", json=gateway.state)
+    gateway.mock.get(f"{URL}/api/derived", status=500)
+    for _ in range(5):
+        await _poll(hass, entry)
+    assert hass.states.get(ENTITY).state == "51234.0"
+    assert ir.async_get(hass).async_get_issue("neore", "gateway_unreachable") is None

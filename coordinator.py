@@ -55,7 +55,6 @@ class NeoreCoordinator(DataUpdateCoordinator[NeoreData]):
     async def _async_update_data(self) -> NeoreData:
         try:
             state = await self.client.state()
-            derived = await self.client.derived()
         except GatewayError as err:
             self.failed_polls += 1
             self.last_error = str(err)
@@ -76,4 +75,10 @@ class NeoreCoordinator(DataUpdateCoordinator[NeoreData]):
         self.last_error = None
         if not isinstance(state, dict):
             raise UpdateFailed("unexpected /api/state payload")
+        # Estimates are optional: a failing /api/derived keeps the previous block and never fails the poll.
+        try:
+            derived = await self.client.derived()
+        except GatewayError as err:
+            _LOGGER.debug("/api/derived failed, keeping previous estimates: %s", err)
+            derived = self.data.derived if self.data else None
         return NeoreData(state=state, derived=derived if isinstance(derived, dict) else None)
