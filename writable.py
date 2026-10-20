@@ -1,4 +1,4 @@
-"""Base for rw registers (number/select/switch). Every write is a POST /api/write through the gateway's
+"""Base for rw registers (number/switch). Every write is a POST /api/write through the gateway's
 WriteGuard; nothing here writes on its own (no restore, no startup write)."""
 from __future__ import annotations
 

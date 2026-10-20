@@ -56,8 +56,8 @@ These 13 are pinned in `const.py` (`LEGACY`); a register map change cannot renam
 - Other registers in the gateway map become sensors (`neore_<register id>`).
 - With `/api/derived` on the gateway: `Neore Electric Power Estimate` (kW) and `Neore COP Estimate`, with
   attributes `low`, `high`, `label`, `basis`. Label `onbekend` → state unknown.
-- `access: rw` registers (API token required) become `number` (real/int), `switch` (bool) or `select`
-  (enum with `options`). Attributes show `write_mode` (shadow/live), `min`, `max`, `max_step`.
+- `access: rw` registers (API token required) become `number` (real/int) or `switch` (bool); enum
+  registers get no entity yet. Attributes show `write_mode` (shadow/live), `min`, `max`, `max_step`.
 
 ## Writes
 

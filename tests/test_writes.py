@@ -27,8 +27,8 @@ async def test_entities_and_no_startup_write(hass, gateway):
     assert number.attributes["min"] == 40.0 and number.attributes["max"] == 55.0
     assert number.attributes["max_step"] == 2.0 and number.attributes["write_mode"] == "shadow"
     assert hass.states.get(_eid(hass, "switch", "neore_backup_heater_enable")).state == "off"
-    select = hass.states.get(_eid(hass, "select", "neore_operating_mode"))
-    assert select.state == "heating" and select.attributes["options"] == ["off", "heating", "auto"]
+    # enum registers get no entity until /api/registers exposes their options
+    assert not [e for e in er.async_get(hass).entities.values() if e.unique_id == "neore_operating_mode"]
     assert gateway.posts() == []
 
 
@@ -44,16 +44,13 @@ async def test_number_write_posts_with_token(hass, gateway):
     assert call[3]["Authorization"] == f"Bearer {TOKEN}"
 
 
-async def test_switch_and_select_write(hass, gateway):
+async def test_switch_write(hass, gateway):
     gateway.with_rw().install()
     await setup_entry(hass, make_entry(TOKEN))
     await hass.services.async_call("switch", "turn_on", {
         "entity_id": _eid(hass, "switch", "neore_backup_heater_enable")}, blocking=True)
-    await hass.services.async_call("select", "select_option", {
-        "entity_id": _eid(hass, "select", "neore_operating_mode"), "option": "auto"}, blocking=True)
-    bodies = [c[2] for c in gateway.posts()]
-    assert bodies[0]["register"] == "backup_heater_enable" and bodies[0]["value"] is True
-    assert bodies[1]["register"] == "operating_mode" and bodies[1]["value"] == "2"
+    (call,) = gateway.posts()
+    assert call[2]["register"] == "backup_heater_enable" and call[2]["value"] is True
 
 
 async def test_refusal_surfaces_result(hass, gateway):

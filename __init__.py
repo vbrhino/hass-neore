@@ -19,7 +19,7 @@ from .gateway import GatewayClient, GatewayError
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.SELECT, Platform.SWITCH]
+PLATFORMS = [Platform.SENSOR, Platform.NUMBER, Platform.SWITCH]
 
 # The legacy `neore:` block (host/plc_url, username, password) is accepted only to migrate it.
 CONFIG_SCHEMA = vol.Schema({vol.Optional(DOMAIN): vol.Any(dict, None)}, extra=vol.ALLOW_EXTRA)
