@@ -1,25 +1,20 @@
-"""Test setup. The integration lives at the repo root; HA loads custom integrations from a
-`custom_components` package, so a temp dir with custom_components/neore -> repo root goes on sys.path."""
+"""Test setup. The integration lives in custom_components/neore; its parent goes on the
+`custom_components` package path, which the harness may already have claimed for its testing_config."""
 from __future__ import annotations
 
 import copy
 import json
 from pathlib import Path
 import sys
-import tempfile
 
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-_SHIM = Path(tempfile.mkdtemp(prefix="neore-cc-"))
-(_SHIM / "custom_components").mkdir()
-(_SHIM / "custom_components" / "__init__.py").write_text("")
-(_SHIM / "custom_components" / "neore").symlink_to(REPO, target_is_directory=True)
-sys.path.insert(0, str(_SHIM))
+sys.path.insert(0, str(REPO))
 import custom_components  # noqa: E402  # may resolve to the harness's testing_config package
 
-if str(_SHIM / "custom_components") not in list(custom_components.__path__):
-    custom_components.__path__.append(str(_SHIM / "custom_components"))
+if str(REPO / "custom_components") not in list(custom_components.__path__):
+    custom_components.__path__.append(str(REPO / "custom_components"))
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
 

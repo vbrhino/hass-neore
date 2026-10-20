@@ -9,7 +9,7 @@ budget, and this integration only reads the gateway's REST API. The integration 
 ## Install
 
 - HACS: add this repository as a custom repository (category *Integration*), install, restart.
-- Manual: copy the repository contents to `<config>/custom_components/neore/`, restart.
+- Manual: copy `custom_components/neore/` to `<config>/custom_components/neore/`, restart.
 
 Then *Settings > Devices & services > Add integration > Neore Heatpump*:
 
@@ -51,7 +51,7 @@ the Energy dashboard continue.
 | `sensor.neore_temperature_delta` | °C | supply − return, computed by the gateway |
 | `sensor.neore_cop` | | deprecated (heat/heat); disabled on new installs |
 
-These 13 are pinned in `const.py` (`LEGACY`); a register map change cannot rename them.
+These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register map change cannot rename them.
 
 - Other registers in the gateway map become sensors (`neore_<register id>`).
 - With `/api/derived` on the gateway: `Neore Electric Power Estimate` (kW) and `Neore COP Estimate`, with
