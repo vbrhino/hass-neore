@@ -1,4 +1,7 @@
 """rw registers: entities only with a token, never a write at startup, writes go to POST /api/write."""
+import asyncio
+
+import aiohttp
 import pytest
 
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -89,3 +92,44 @@ async def test_bad_token(hass, gateway):
     with pytest.raises(HomeAssistantError, match="token"):
         await hass.services.async_call("switch", "turn_off", {
             "entity_id": _eid(hass, "switch", "neore_backup_heater_enable")}, blocking=True)
+
+
+async def _set_number(hass):
+    await hass.services.async_call("number", "set_value", {
+        "entity_id": _eid(hass, "number", "neore_dhw_setpoint"), "value": 49.0}, blocking=True)
+
+
+@pytest.mark.parametrize(("write", "expected"), [
+    ((200, {"result": "would_write", "register": "dhw_setpoint", "mode": "shadow", "applied": False}),
+     "shadow mode"),
+    ((200, {"result": "pending", "register": "dhw_setpoint", "mode": "live", "applied": False}),
+     "not applied: pending"),
+    ((409, {"result": "killswitch", "register": "dhw_setpoint", "mode": "live", "applied": False}),
+     "refused the write to dhw_setpoint: killswitch"),
+    ((502, {"result": "mismatch", "register": "dhw_setpoint", "mode": "live", "applied": False,
+            "detail": "readback '47' != '49'"}), "failed after it was sent to the PLC: mismatch"),
+    ((503, {"result": "audit_failed", "register": "dhw_setpoint", "mode": "live", "applied": False}),
+     "not sent: the gateway could not record it"),
+])
+async def test_error_text_follows_result(hass, gateway, write, expected):
+    gateway.with_rw().install(write=write)
+    await setup_entry(hass, make_entry(TOKEN))
+    with pytest.raises(HomeAssistantError, match=expected) as info:
+        await _set_number(hass)
+    if "shadow" not in expected:
+        assert "shadow" not in str(info.value)
+
+
+async def test_timeout_reports_unknown_outcome(hass, gateway):
+    gateway.with_rw().install(write_exc=asyncio.TimeoutError())
+    await setup_entry(hass, make_entry(TOKEN))
+    with pytest.raises(HomeAssistantError, match="unknown whether it was applied.*audit"):
+        await _set_number(hass)
+    assert len(gateway.posts()) == 1  # never retried
+
+
+async def test_connection_refused_reports_not_sent(hass, gateway):
+    gateway.with_rw().install(write_exc=aiohttp.ClientConnectorError(None, OSError(61, "refused")))
+    await setup_entry(hass, make_entry(TOKEN))
+    with pytest.raises(HomeAssistantError, match="unreachable, write to dhw_setpoint not sent"):
+        await _set_number(hass)

@@ -74,7 +74,8 @@ class FakeGateway:
         self.state["modes"] = {"dhw_setpoint": "shadow", "backup_heater_enable": "live", "operating_mode": "shadow"}
         return self
 
-    def install(self, *, down: bool = False, write: tuple[int, dict] | None = None) -> None:
+    def install(self, *, down: bool = False, write: tuple[int, dict] | None = None,
+                write_exc: Exception | None = None) -> None:
         import aiohttp
 
         self.mock.clear_requests()
@@ -89,6 +90,9 @@ class FakeGateway:
             self.mock.get(f"{URL}/api/derived", status=404, json={"error": "not_found"})
         else:
             self.mock.get(f"{URL}/api/derived", json=self.derived)
+        if write_exc is not None:
+            self.mock.post(f"{URL}/api/write", exc=write_exc)
+            return
         status, body = write or (200, {"result": "applied", "register": "x", "mode": "live", "applied": True})
         self.mock.post(f"{URL}/api/write", status=status, json=body)
 

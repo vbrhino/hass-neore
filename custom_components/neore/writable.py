@@ -10,7 +10,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from .coordinator import NeoreConfigEntry, NeoreCoordinator
 from .entity import NeoreRegisterEntity, display_name
-from .gateway import GatewayAuthError, GatewayClient, GatewayError, GatewayWriteRefused
+from .gateway import GatewayAuthError, GatewayClient, GatewayError, GatewayWriteRefused, GatewayWriteUnknown
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,25 +51,42 @@ class NeoreWritable(NeoreRegisterEntity):
         }
 
     async def _async_write(self, value: Any) -> None:
-        """POST /api/write; a refusal surfaces the gateway's `result` code as a service error."""
+        """POST /api/write once (never retried); the error text follows the gateway's `result` code."""
+        reg = self._register_id
         try:
-            res = await self._client.write(self._register_id, value, f"Home Assistant: {self.entity_id}")
+            res = await self._client.write(reg, value, f"Home Assistant: {self.entity_id}")
         except GatewayWriteRefused as err:
-            raise HomeAssistantError(
-                f"neore-gateway refused write to {self._register_id}: {err.result}"
-                + (f" ({err.detail})" if err.detail else "")
-            ) from err
+            raise HomeAssistantError(_refusal_text(reg, err)) from err
         except GatewayAuthError as err:
             raise HomeAssistantError(f"neore-gateway rejected the API token: {err}") from err
-        except GatewayError as err:
-            raise HomeAssistantError(f"neore-gateway unreachable: {err}") from err
-        await self.coordinator.async_request_refresh()
-        if not res.get("applied"):
-            # shadow mode: validated and audited as would_write, never sent to the PLC
+        except GatewayWriteUnknown as err:
+            await self.coordinator.async_request_refresh()
             raise HomeAssistantError(
-                f"{self._register_id} is in {res.get('mode') or 'shadow'} mode: write audited as "
-                f"{res.get('result')}, not sent to the heat pump"
+                f"No answer from neore-gateway for the write to {reg} ({err}): unknown whether it was applied. "
+                "Check the sensor and the gateway audit log before trying again."
+            ) from err
+        except GatewayError as err:
+            raise HomeAssistantError(f"neore-gateway unreachable, write to {reg} not sent: {err}") from err
+        await self.coordinator.async_request_refresh()
+        if res.get("applied"):
+            return
+        result = res.get("result")
+        if result == "would_write" and res.get("mode") == "shadow":
+            raise HomeAssistantError(
+                f"{reg} is in shadow mode: write validated and audited as would_write, not sent to the heat pump"
             )
+        raise HomeAssistantError(f"Write to {reg} not applied: {result}")
+
+
+def _refusal_text(register_id: str, err: GatewayWriteRefused) -> str:
+    detail = f" ({err.detail})" if err.detail else ""
+    if err.status == 409:  # WriteGuard refusal: nothing sent to the PLC
+        return f"neore-gateway refused the write to {register_id}: {err.result}{detail}"
+    if err.result == "audit_failed":
+        return f"Write to {register_id} not sent: the gateway could not record it in its audit log{detail}"
+    # 502 mismatch/error: sent to the PLC, readback failed or differed
+    return (f"Write to {register_id} failed after it was sent to the PLC: {err.result}{detail}. "
+            "Check the sensor and the gateway audit log before trying again.")
 
 
 def check_step(register: dict[str, Any], current: Any, value: float) -> None:

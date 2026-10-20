@@ -17,6 +17,10 @@ class GatewayAuthError(GatewayError):
     """POST refused with 401: API token missing or wrong."""
 
 
+class GatewayWriteUnknown(GatewayError):
+    """The POST may have reached the gateway (timeout, dropped connection, unreadable answer): outcome unknown."""
+
+
 class GatewayWriteRefused(GatewayError):
     """The WriteGuard refused or failed a write; `result` is the gateway's result code."""
 
@@ -81,12 +85,14 @@ class GatewayClient:
             ) as resp:
                 data = await resp.json(content_type=None)
                 status = resp.status
-        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as err:
+        except aiohttp.ClientConnectorError as err:  # no connection: nothing was sent
             raise GatewayError(f"POST /api/write: {err!r}") from err
+        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as err:
+            raise GatewayWriteUnknown(f"POST /api/write: {err!r}") from err
         if status == 401:
             raise GatewayAuthError((data or {}).get("detail") or "unauthorized")
         if not isinstance(data, dict):
-            raise GatewayError(f"POST /api/write: HTTP {status}")
+            raise GatewayWriteUnknown(f"POST /api/write: HTTP {status}")
         if status != 200:
             raise GatewayWriteRefused(str(data.get("result") or data.get("error") or status), data.get("detail"), status)
         return data

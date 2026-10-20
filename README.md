@@ -63,8 +63,13 @@ These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register
 
 - Every write is `POST /api/write` with the bearer token; the gateway's WriteGuard decides.
 - Nothing is written at startup or on restore.
-- A refusal raises an error carrying the gateway's `result` (`interlock`, `step_too_large`, …).
-- In `shadow` mode a write is audited as `would_write` and not sent; the service call reports that.
+- Each write is sent once, never retried.
+- A WriteGuard refusal (HTTP 409) raises an error with the gateway's `result` (`interlock`, `step_too_large`,
+  `killswitch`, …); nothing reached the PLC.
+- `mismatch`/`error` (HTTP 502): the value was sent but the readback failed or differed. A timeout or dropped
+  connection: unknown whether the write was applied. In both cases check the sensor and the gateway audit
+  log before trying again.
+- In `shadow` mode a write is audited as `would_write` and not sent; the service call says so.
 
 ## Unreachable gateway or PLC
 
