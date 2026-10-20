@@ -1,7 +1,7 @@
 """The 13 hass-neore sensors must keep unique_id, entity_id, name and unit (history + LTS)."""
 from homeassistant.helpers import entity_registry as er
 
-from conftest import make_entry, setup_entry
+from conftest import load, make_entry, setup_entry
 
 # unique_id -> (entity_id, friendly name, unit) as hass-neore 0.2.0 created them (entity_registry.json).
 EXPECTED = {
@@ -23,21 +23,44 @@ EXPECTED = {
 
 
 async def test_existing_registry_rows_are_adopted(hass, gateway):
-    """Rows from the YAML era (no config entry, no device) keep their entity_ids and enabled state."""
+    """The owner's 13 YAML-era rows (no config entry, no device; tests/fixtures/legacy_registry.json, copied from
+    the live entity registry) keep entity_id, enabled state and options, and are adopted by the config entry."""
+    rows = load("legacy_registry.json")
+    assert {r["unique_id"] for r in rows} == set(EXPECTED)
     reg = er.async_get(hass)
-    for uid, (entity_id, _, _) in EXPECTED.items():
-        reg.async_get_or_create("sensor", "neore", uid, suggested_object_id=entity_id.split(".", 1)[1])
+    for row in rows:
+        entry = reg.async_get_or_create(
+            "sensor", row["platform"], row["unique_id"],
+            suggested_object_id=row["entity_id"].split(".", 1)[1],
+            original_name=row["original_name"], has_entity_name=row["has_entity_name"],
+        )
+        assert entry.entity_id == row["entity_id"] and entry.config_entry_id is None
+        for domain, options in row["options"].items():
+            reg.async_update_entity_options(entry.entity_id, domain, options)
     entry = await setup_entry(hass, make_entry())
 
-    for uid, (entity_id, name, unit) in EXPECTED.items():
-        assert reg.async_get_entity_id("sensor", "neore", uid) == entity_id
-        row = reg.async_get(entity_id)
-        assert row.config_entry_id == entry.entry_id
-        assert row.disabled_by is None, entity_id  # neore_cop stays enabled for the existing install
+    for row in rows:
+        entity_id = row["entity_id"]
+        _, name, unit = EXPECTED[row["unique_id"]]
+        assert reg.async_get_entity_id("sensor", "neore", row["unique_id"]) == entity_id
+        adopted = reg.async_get(entity_id)
+        assert adopted.config_entry_id == entry.entry_id
+        assert adopted.disabled_by is None, entity_id  # neore_cop stays enabled for the existing install
+        assert adopted.has_entity_name is False
+        assert adopted.original_name == row["original_name"] == name
+        for domain, options in row["options"].items():
+            assert adopted.options[domain] == options, entity_id
         state = hass.states.get(entity_id)
         assert state is not None, entity_id
         assert state.attributes.get("friendly_name") == name
         assert state.attributes.get("unit_of_measurement") == unit
+
+
+async def test_live_display_precision_matches_legacy_table():
+    from custom_components.neore.const import LEGACY
+
+    for row in load("legacy_registry.json"):
+        assert LEGACY[row["unique_id"]].precision == row["options"]["sensor"]["suggested_display_precision"]
 
 
 async def test_fresh_install_entity_ids(hass, gateway):
