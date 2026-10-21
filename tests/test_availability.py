@@ -97,6 +97,7 @@ async def test_failing_derived_does_not_fail_polls(hass, gateway):
     gateway.mock.clear_requests()
     gateway.mock.get(f"{URL}/api/state", json=gateway.state)
     gateway.mock.get(f"{URL}/api/derived", status=500)
+    gateway.mock.get(f"{URL}/api/boost", status=404)
     for _ in range(5):
         await _poll(hass, entry)
     assert hass.states.get(ENTITY).state == "51234.0"

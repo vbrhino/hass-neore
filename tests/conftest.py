@@ -53,6 +53,13 @@ DERIVED = {
     "cop": {"value": None, "low": None, "high": None, "label": "onbekend", "basis": "too few samples"},
 }
 
+BOOST = {
+    "enabled": True, "mode": "live", "state": "planned",
+    "plan": {"start": 1792661400.0, "end": 1792672200.0, "avg_price": 0.186, "ref_avg_price": 0.25703},
+    "baseline": 0.0, "boost_value": 5.0, "skip_reasons": ["one boost per 24 h: last started 20-10 11:30"],
+    "last_action": {"ts": 1792586000.0, "result": "applied", "value": 0.0},
+}
+
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
@@ -67,6 +74,7 @@ class FakeGateway:
         self.registers = load("registers.json")
         self.state = load("state.json")
         self.derived: dict | None = None
+        self.boost: dict | None = None
 
     def with_rw(self) -> FakeGateway:
         self.registers["registers"] += copy.deepcopy(RW_REGISTERS)
@@ -80,7 +88,7 @@ class FakeGateway:
 
         self.mock.clear_requests()
         if down:
-            for path in ("health", "state", "registers", "derived"):
+            for path in ("health", "state", "registers", "derived", "boost"):
                 self.mock.get(f"{URL}/api/{path}", exc=aiohttp.ClientConnectionError())
             return
         self.mock.get(f"{URL}/api/health", json=HEALTH)
@@ -90,6 +98,10 @@ class FakeGateway:
             self.mock.get(f"{URL}/api/derived", status=404, json={"error": "not_found"})
         else:
             self.mock.get(f"{URL}/api/derived", json=self.derived)
+        if self.boost is None:
+            self.mock.get(f"{URL}/api/boost", status=404, json={"error": "not_found"})
+        else:
+            self.mock.get(f"{URL}/api/boost", json=self.boost)
         if write_exc is not None:
             self.mock.post(f"{URL}/api/write", exc=write_exc)
             return

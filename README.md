@@ -103,6 +103,11 @@ These 13 are pinned in `custom_components/neore/const.py` (`LEGACY`); a register
 - Other registers in the gateway map become sensors (`neore_<register id>`).
 - With `/api/derived` on the gateway: `Neore Electric Power Estimate` (kW) and `Neore COP Estimate`, with
   attributes `low`, `high`, `label`, `basis`. Label `onbekend` → state unknown.
+- With `/api/boost` on the gateway: `sensor.neore_boost`, the gateway's price boost. State `disabled`,
+  `no_prices`, `idle`, `planned`, `active`, `aborted` or `killswitch`; attributes `enabled`, `mode`,
+  `plan_start`/`plan_end` (local ISO), `avg_price`, `ref_avg_price`, `baseline`, `boost_value` (outdoor-scaled),
+  `skip_reasons`, `last_action_ts`/`_result`/`_value`. Read-only; a failing `/api/boost` keeps the last status
+  for 3 polls, then the entity is unavailable, without failing the other entities.
 - `access: rw` registers (API token required) become `number` (real/int) or `switch` (bool); enum
   registers get no entity yet.
   - On/off and mode registers (type `bool`, or an id containing `mode`, `on_off`, `power`, `enable`) start

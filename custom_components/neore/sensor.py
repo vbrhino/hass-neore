@@ -1,4 +1,5 @@
-"""Sensors: the 13 frozen hass-neore sensors, further map registers, and gateway estimates (/api/derived)."""
+"""Sensors: the 13 frozen hass-neore sensors, further map registers, gateway estimates (/api/derived) and the
+gateway's price-boost status (/api/boost)."""
 from __future__ import annotations
 
 from typing import Any
@@ -6,9 +7,11 @@ from typing import Any
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.util import dt as dt_util
 
-from .const import LEGACY, LegacySensor
+from .const import DOMAIN, LEGACY, LegacySensor
 from .coordinator import NeoreConfigEntry, NeoreCoordinator
 from .entity import NeoreEntity, NeoreRegisterEntity, display_name
 
@@ -27,6 +30,8 @@ DERIVED: dict[str, tuple[str, str, str | None, SensorDeviceClass | None]] = {
                     SensorDeviceClass.POWER),
     "cop": ("neore_derived_cop", "Neore COP Estimate", None, None),
 }
+
+BOOST_UNIQUE_ID = "neore_boost"
 
 
 def _unique_id(register: dict[str, Any]) -> str:
@@ -47,13 +52,17 @@ async def async_setup_entry(
         register_id = reg.get("id") or legacy.register_id
         legacy_ids.add(register_id)
         entities.append(LegacyNeoreSensor(coordinator, uid, legacy, register_id, bool(reg.get("deprecated"))))
-    taken = set(LEGACY) | {d[0] for d in DERIVED.values()}
+    taken = set(LEGACY) | {d[0] for d in DERIVED.values()} | {BOOST_UNIQUE_ID}
     for uid, reg in by_uid.items():
         if uid in taken or reg["id"] in legacy_ids or reg.get("access") == "rw":
             continue
         entities.append(RegisterSensor(coordinator, uid, reg))
     if coordinator.data and coordinator.data.derived is not None:
         entities.extend(DerivedSensor(coordinator, key, *spec) for key, spec in DERIVED.items())
+    # Created when the gateway serves /api/boost, or kept when it existed before (a failed first fetch).
+    if (coordinator.data and coordinator.data.boost is not None) or er.async_get(hass).async_get_entity_id(
+            "sensor", DOMAIN, BOOST_UNIQUE_ID):
+        entities.append(BoostSensor(coordinator))
     async_add_entities(entities)
 
 
@@ -128,3 +137,51 @@ class DerivedSensor(NeoreEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         item = self._item()
         return {k: item.get(k) for k in ("low", "high", "label", "basis")}
+
+
+def _local_iso(ts: Any) -> str | None:
+    if isinstance(ts, bool) or not isinstance(ts, (int, float)):
+        return None
+    return dt_util.as_local(dt_util.utc_from_timestamp(ts)).isoformat()
+
+
+class BoostSensor(NeoreEntity, SensorEntity):
+    """The gateway's price boost: state disabled/no_prices/idle/planned/active/aborted/killswitch, plan as attributes.
+    Unavailable while the gateway serves no boost status; does not follow the PLC status (the gateway's own state)."""
+
+    _attr_icon = "mdi:rocket-launch-outline"
+
+    def __init__(self, coordinator: NeoreCoordinator) -> None:
+        super().__init__(coordinator, BOOST_UNIQUE_ID, "Neore Boost")
+
+    def _boost(self) -> dict[str, Any]:
+        return self.coordinator.data.boost or {}
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.last_update_success and self.coordinator.data.boost is not None
+
+    @property
+    def native_value(self) -> str | None:
+        state = self._boost().get("state")
+        return str(state) if state is not None else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        b = self._boost()
+        plan = b.get("plan") if isinstance(b.get("plan"), dict) else {}
+        last = b.get("last_action") if isinstance(b.get("last_action"), dict) else {}
+        return {
+            "enabled": b.get("enabled"),
+            "mode": b.get("mode"),
+            "plan_start": _local_iso(plan.get("start")),
+            "plan_end": _local_iso(plan.get("end")),
+            "avg_price": plan.get("avg_price"),
+            "ref_avg_price": plan.get("ref_avg_price"),
+            "baseline": b.get("baseline"),
+            "boost_value": b.get("boost_value"),
+            "skip_reasons": list(b.get("skip_reasons") or []),
+            "last_action_ts": _local_iso(last.get("ts")),
+            "last_action_result": last.get("result"),
+            "last_action_value": last.get("value"),
+        }

@@ -1,4 +1,4 @@
-"""Polls /api/state (+ /api/derived) from neore-gateway."""
+"""Polls /api/state (+ /api/derived, /api/boost) from neore-gateway."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -20,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class NeoreData:
     state: dict[str, Any]
     derived: dict[str, Any] | None = None
+    boost: dict[str, Any] | None = None
 
     def register(self, register_id: str) -> dict[str, Any] | None:
         return (self.state.get("registers") or {}).get(register_id)
@@ -59,6 +60,7 @@ class NeoreCoordinator(DataUpdateCoordinator[NeoreData]):
         self.failed_polls = 0
         self.plc_offline_polls = 0
         self.last_error: str | None = None
+        self.boost_failed_polls = 0
 
     async def _async_update_data(self) -> NeoreData:
         try:
@@ -90,7 +92,20 @@ class NeoreCoordinator(DataUpdateCoordinator[NeoreData]):
         except GatewayError as err:
             _LOGGER.debug("/api/derived failed, keeping previous estimates: %s", err)
             derived = self.data.derived if self.data else None
-        return NeoreData(state=state, derived=derived if isinstance(derived, dict) else None)
+        return NeoreData(state=state, derived=derived if isinstance(derived, dict) else None, boost=await self._boost())
+
+    async def _boost(self) -> dict[str, Any] | None:
+        """/api/boost never fails the poll: a failure keeps the previous status for MAX_FAILED_POLLS polls, then
+        None (boost entity unavailable). 404 (older gateway) is None at once."""
+        try:
+            boost = await self.client.boost()
+        except GatewayError as err:
+            self.boost_failed_polls += 1
+            _LOGGER.debug("/api/boost failed (%d): %s", self.boost_failed_polls, err)
+            previous = self.data.boost if self.data else None
+            return previous if self.boost_failed_polls <= MAX_FAILED_POLLS else None
+        self.boost_failed_polls = 0
+        return boost if isinstance(boost, dict) else None
 
     def _track_plc(self, plc: Any) -> None:
         if plc != "offline":

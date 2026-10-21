@@ -75,6 +75,10 @@ class GatewayClient:
         """Phase-2 endpoint; None when the gateway does not serve it (404)."""
         return await self._get("/api/derived", allow_404=True)
 
+    async def boost(self) -> dict[str, Any] | None:
+        """The gateway's price-boost status; None when the gateway does not serve it (404)."""
+        return await self._get("/api/boost", allow_404=True)
+
     async def check_token(self) -> None:
         """Raise GatewayAuthError when the gateway rejects the token. A dry run on a register that does not exist:
         the auth check runs first, then the WriteGuard refuses; nothing is written or audited."""
