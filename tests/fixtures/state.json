@@ -1,0 +1,99 @@
+{
+ "ts": 1792500000.0,
+ "plc": "online",
+ "killswitch": false,
+ "modes": {},
+ "registers": {
+  "object_temperature": {
+   "value": 21.3,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "outdoor_temperature": {
+   "value": 8.0,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "circulation_pump_percent": {
+   "value": 45.0,
+   "unit": "%",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "outdoor_unit_percent": {
+   "value": 60.0,
+   "unit": "%",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "supply_temperature": {
+   "value": 35.2,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "return_temperature": {
+   "value": 30.1,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "required_temperature": {
+   "value": 36.0,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "water_flow": {
+   "value": 1.25,
+   "unit": "m³/h",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "heat_power": {
+   "value": 4.3,
+   "unit": "kW",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "heat_energy": {
+   "value": 51234.0,
+   "unit": "kWh",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "water_pressure": {
+   "value": 1.6,
+   "unit": "Bar",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "temperature_delta": {
+   "value": 5.1,
+   "unit": "°C",
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  },
+  "cop": {
+   "value": 1.0,
+   "unit": null,
+   "ts": 1792500000.0,
+   "quality": "good",
+   "access": "r"
+  }
+ }
+}

@@ -1,0 +1,275 @@
+[
+ {
+  "entity_id": "sensor.neore_object_temperature",
+  "unique_id": "neore___R7195_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Object Temperature",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_outdoor_temperature",
+  "unique_id": "neore___R7079_REAL_.0f",
+  "platform": "neore",
+  "original_name": "Neore Outdoor Temperature",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_circulation_percent",
+  "unique_id": "neore___R15173_REAL_.0f",
+  "platform": "neore",
+  "original_name": "Neore Circulation Percent",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 0
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_outdoor_unit_circulation_percent",
+  "unique_id": "neore___R7070_REAL_.0f",
+  "platform": "neore",
+  "original_name": "Neore Outdoor Unit Circulation Percent",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 0
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_output_temperature",
+  "unique_id": "neore___R15104_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Output Temperature",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_input_temperature",
+  "unique_id": "neore___R7096_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Input Temperature",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_required_temperature",
+  "unique_id": "neore___R7312_REAL_.0f",
+  "platform": "neore",
+  "original_name": "Neore Required Temperature",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_water_flow",
+  "unique_id": "neore___R7083_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Water Flow",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 2
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_actual_power_usage",
+  "unique_id": "neore___R7087_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Actual Power Usage",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 2
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_supplied_power",
+  "unique_id": "neore___R7091_REAL_.0f",
+  "platform": "neore",
+  "original_name": "Neore Supplied Power",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_water_pressure",
+  "unique_id": "neore___R7297_REAL_.1f",
+  "platform": "neore",
+  "original_name": "Neore Water Pressure",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_temperature_delta",
+  "unique_id": "neore_temperature_delta",
+  "platform": "neore",
+  "original_name": "Neore Temperature Delta",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 1
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ },
+ {
+  "entity_id": "sensor.neore_cop",
+  "unique_id": "neore_cop",
+  "platform": "neore",
+  "original_name": "Neore COP",
+  "has_entity_name": false,
+  "disabled_by": null,
+  "options": {
+   "sensor": {
+    "suggested_display_precision": 2
+   },
+   "conversation": {
+    "should_expose": false
+   },
+   "cloud.alexa": {
+    "should_expose": false
+   }
+  },
+  "config_entry_id": null,
+  "device_id": null
+ }
+]

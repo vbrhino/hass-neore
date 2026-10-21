@@ -1,0 +1,60 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Neore gateway",
+        "description": "This integration reads the heat pump through neore-gateway; it never logs in to the PLC itself. The gateway must be the only PLC client: remove the old `neore:` YAML block and stop any other tool polling the PLC, or they take each other's session. LAN only: plain http, keep the gateway on a trusted network.",
+        "data": {
+          "url": "Gateway URL",
+          "token": "API token (only needed for writes)"
+        },
+        "data_description": {
+          "url": "Base URL of neore-gateway. Gateway on another host (always with HAOS): http://<gateway-host-ip>:8470. Docker with host network on the same machine: http://127.0.0.1:8470.",
+          "token": "The gateway's bearer token (its api_token secret). Without it, writable registers are not exposed."
+        }
+      },
+      "reconfigure": {
+        "title": "Neore gateway",
+        "data": {
+          "url": "Gateway URL",
+          "token": "API token (only needed for writes)"
+        },
+        "data_description": {
+          "url": "Base URL of neore-gateway. Gateway on another host (always with HAOS): http://<gateway-host-ip>:8470. Docker with host network on the same machine: http://127.0.0.1:8470.",
+          "token": "The gateway's bearer token (its api_token secret). Without it, writable registers are not exposed."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Neore gateway: new API token",
+        "description": "neore-gateway at {url} rejected the API token. Enter the gateway's current token (the content of NEORE_API_TOKEN_FILE).",
+        "data": {
+          "token": "API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the gateway at this URL (GET /api/health failed).",
+      "not_a_gateway": "The URL answers, but not like neore-gateway.",
+      "invalid_auth": "The gateway rejected this API token (HTTP 401)."
+    },
+    "abort": {
+      "already_configured": "Neore is already configured.",
+      "reconfigure_successful": "Gateway settings updated.",
+      "reauth_successful": "API token updated."
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "Neore YAML configuration is no longer used",
+      "description": "The `neore:` block in configuration.yaml and its PLC username and password are no longer used: this integration now reads the heat pump through neore-gateway, which holds the only PLC session. A config entry has been created pointing at the default gateway URL; if that is wrong, open Settings > Devices & services > Neore > Reconfigure. Then remove the `neore:` block from configuration.yaml and restart Home Assistant."
+    },
+    "gateway_unreachable": {
+      "title": "Neore gateway unreachable",
+      "description": "neore-gateway at {url} has not answered for several polls ({error}). Neore entities are unavailable until it answers again. Check that the gateway runs, or change the URL via Settings > Devices & services > Neore > Reconfigure."
+    },
+    "plc_offline": {
+      "title": "Neore PLC offline",
+      "description": "neore-gateway at {url} answers, but has not read the heat pump's PLC for several polls. Neore entities are unavailable until the gateway reads the PLC again. Check the gateway log (login refused, load breaker open, PLC unreachable) and that no other client holds the PLC session."
+    }
+  }
+}
