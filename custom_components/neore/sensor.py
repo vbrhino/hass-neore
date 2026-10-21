@@ -140,7 +140,8 @@ class DerivedSensor(NeoreEntity, SensorEntity):
 
 
 def _local_iso(ts: Any) -> str | None:
-    if isinstance(ts, bool) or not isinstance(ts, (int, float)):
+    # 0 = the gateway's placeholder window while it restores a boost of unknown window.
+    if isinstance(ts, bool) or not isinstance(ts, (int, float)) or ts <= 0:
         return None
     return dt_util.as_local(dt_util.utc_from_timestamp(ts)).isoformat()
 

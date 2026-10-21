@@ -56,6 +56,35 @@ async def test_boost_without_plan_or_action(hass, gateway):
     assert (a["last_action_ts"], a["last_action_result"], a["last_action_value"]) == (None, None, None)
 
 
+async def test_placeholder_window_has_no_times(hass, gateway):
+    gateway.boost = BOOST | {"state": "active", "plan": {"start": 0.0, "end": 0.0, "avg_price": None, "ref_avg_price": None}}
+    gateway.install()
+    await setup_entry(hass, make_entry())
+    a = hass.states.get(ENTITY).attributes
+    assert hass.states.get(ENTITY).state == "active"
+    assert (a["plan_start"], a["plan_end"]) == (None, None)
+
+
+async def test_boost_entity_kept_when_first_fetch_fails(hass, gateway):
+    gateway.boost = copy.deepcopy(BOOST)
+    gateway.install()
+    entry = await setup_entry(hass, make_entry())
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    gateway.boost = None
+    gateway.install()
+    gateway.mock.clear_requests()
+    for path, body in (("health", None), ("registers", gateway.registers), ("state", gateway.state)):
+        gateway.mock.get(f"{URL}/api/{path}", json=body or {"status": "ok"})
+    gateway.mock.get(f"{URL}/api/derived", status=404)
+    gateway.mock.get(f"{URL}/api/boost", status=500)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    st = hass.states.get(ENTITY)
+    assert st.state == STATE_UNAVAILABLE
+    assert not st.attributes.get("restored"), "a live entity, not the registry's placeholder"
+
+
 async def test_boost_follows_polls(hass, gateway):
     gateway.boost = copy.deepcopy(BOOST)
     gateway.install()
